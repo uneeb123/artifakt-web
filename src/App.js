@@ -10,6 +10,7 @@ import contractAddresses from './contracts/addresses';
 const INFURA_WS = "wss://mainnet.infura.io/ws";
 const apiKey = "11IBD3K48I6ZXIT86ZC17YH3XYZJCAURID";
 const etherBaseUrl = "http://api.etherscan.io/api?";
+const cryptoKittyBaseUrl = "http://api.cryptokitties.co/kitties/";
 
 const kittySaleAddress = '0xb1690C08E213a35Ed9bAb7B318DE14420FB57d8C';
 const kittySiringAddress = '0xC7af99Fe5513eB6710e6D5f44F9989dA40F27F26';
@@ -111,9 +112,9 @@ class KittyProcessor {
   _getKittyPortfolio = (kittyIds) => {
     return new Promise((resolve, reject) => {
       let result = {
-        "available": [],
-        "siring": [],
-        "past": [],
+        available: [],
+        siring: [],
+        past: [],
       };
       function forEachKitty(i, that) {
         if (i >= kittyIds.length) {
@@ -123,11 +124,11 @@ class KittyProcessor {
           let kittyId = kittyIds[i];
           that._ownerOf(kittyId).then((owner) => {
             if (owner.toLowerCase() === that.accountAddress.toLowerCase()) {
-              result["available"].push(kittyId);
+              result.available.push(kittyId);
             } else if (owner.toLowerCase() === kittySiringAddress.toLowerCase()) {
-              result["siring"].push(kittyId);
+              result.siring.push(kittyId);
             } else {
-              result["past"].push(kittyId);
+              result.past.push(kittyId);
             }
             forEachKitty(i+1, that);
           }).catch(e => reject(e));
@@ -137,6 +138,17 @@ class KittyProcessor {
     });
   }
 
+  _fetchKittyInfo = (kittyId) => {
+    return new Promise((resolve, reject) => {
+      let url = cryptoKittyBaseUrl + kittyId;
+      fetch(url)
+        .then(res => res.text())
+        .then((body) => {
+          let json = JSON.parse(body);
+            resolve(json);
+        }).catch(e => reject(e));
+    });
+  }
 }
 
 class App extends Component {
@@ -148,6 +160,11 @@ class App extends Component {
       metamaskListening: false,
       account: null,
       loading: true,
+      kitties: {
+        available: [],
+        siring: [],
+        past: [],
+      },
     };
     if (Web3.givenProvider) {
       this.web3 = new Web3(Web3.givenProvider);
@@ -189,12 +206,81 @@ class App extends Component {
   componentDidMount() {
   }
 
+  _constructAvailableKitties = (availableIds) => {
+    return new Promise((resolve, reject) => {
+      var result = [];
+      function constructKitty(i, that) {
+        if (i >= availableIds.length) {
+          resolve(result);
+        } else {
+          that.kittyProcessor._fetchKittyInfo(availableIds[i]).then((kittyData) => {
+            result.push(kittyData);
+            constructKitty(i+1, that);
+          }).catch(e => reject(e));
+        }
+      }
+      constructKitty(0, this);
+    });
+  }
+
+  _constructSiringKitties = (siringIds) => {
+    return new Promise((resolve, reject) => {
+      var result = [];
+      function constructKitty(i, that) {
+        if (i >= siringIds.length) {
+          resolve(result);
+        } else {
+          that.kittyProcessor._fetchKittyInfo(siringIds[i]).then((kittyData) => {
+            result.push(kittyData);
+            constructKitty(i+1, that);
+          }).catch(e => reject(e));
+        }
+      }
+      constructKitty(0, this);
+    });
+  }
+
+  _constructPastKitties = (pastIds) => {
+    return new Promise((resolve, reject) => {
+      var result = [];
+      function constructKitty(i, that) {
+        if (i >= pastIds.length) {
+          resolve(result);
+        } else {
+          that.kittyProcessor._fetchKittyInfo(pastIds[i]).then((kittyData) => {
+            result.push(kittyData);
+            constructKitty(i+1, that);
+          }).catch(e => reject(e));
+        }
+      }
+      constructKitty(0, this);
+    });
+  }
+
+  _constructKitties = (sortedIds) => {
+    this._constructAvailableKitties(sortedIds.available).then((availableKitties) => {
+      this._constructSiringKitties(sortedIds.siring).then((siringKitties) => {
+        this._constructPastKitties(sortedIds.past).then((pastKitties) => {
+          this.setState({
+            kitties: {
+              available: availableKitties,
+              siring: siringKitties,
+              past: pastKitties
+            }
+          });
+        }).catch(e => console.error(e));
+      }).catch(e => console.error(e));
+    }).catch(e => console.error(e));
+  }
+
   _loadKittyInfo = () => {
-    let processor = new KittyProcessor(this.state.account);
-    processor._allKittiesEverBought()
+    this.kittyProcessor = new KittyProcessor(this.state.account);
+    this.kittyProcessor._allKittiesEverBought()
       .then((ids) => {
-        console.log(ids);
-        processor._getKittyPortfolio(ids).then(res => console.log(res)).catch(e => console.error(e));
+        this.kittyProcessor._getKittyPortfolio(ids)
+          .then((sortedIds) => {
+            this._constructKitties(sortedIds);
+          }).catch(e => console.error(e));
       }).catch(e => console.error(e));
   }
 
