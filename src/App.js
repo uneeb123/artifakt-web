@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { PropagateLoader } from 'react-spinners';
+
 import Web3 from 'web3';
 import logo from './logo/logo_white.svg';
 import './App.css';
@@ -6,6 +8,103 @@ import NFTABI from './contracts/nft.abi';
 import contractAddresses from './contracts/addresses';
 
 const INFURA_WS = "wss://mainnet.infura.io/ws";
+const apiKey = "11IBD3K48I6ZXIT86ZC17YH3XYZJCAURID";
+const etherBaseUrl = "http://api.etherscan.io/api?";
+
+const kittySaleAddress = '0xb1690C08E213a35Ed9bAb7B318DE14420FB57d8C';
+
+class KittyProcessor {
+  constructor(accountAddress) {
+    this.accountAddress = accountAddress;
+    this.methodIds = {
+      "0x454a2ab3": "bid"
+    }
+  }
+
+  _functionDecoder = (data) => {
+    // first 4 bytes is method with hex
+    let methodIdHex = data.slice(0,10);
+    let params = data.slice(10);
+    // the rest is params of 32 bytes
+    let param = parseInt(params, 16);
+    return [methodIdHex, param];
+  }
+
+  _getKittyId = (input) => {
+    let decodedValue = this._functionDecoder(input);
+    if (this.methodIds[decodedValue[0]] === "bid") {
+      return decodedValue[1];
+    }
+  }
+
+  _getAllKittyIds = (txs) => {
+    let ids = []
+    for (let i=0; i<txs.length; i++) {
+      ids.push(this._getKittyId(txs[i].input));
+    }
+    return ids;
+  }
+
+  _constructUrlForAllTxs = (address) => {
+    let queryString = "module=account&action=txlist&address=" + 
+      this.accountAddress + 
+      "&startblock=0&endblock=999999999&sort=asc&apikey=" + apiKey;
+    return etherBaseUrl + queryString;
+  }
+
+  _getAllTxs = (address) => {
+    return new Promise((resolve, reject) => {
+      let url = this._constructUrlForAllTxs(address);
+      fetch(url)
+        .then(res => res.text())
+        .then((body) => {
+          var json = JSON.parse(body);
+          if (json.status === "1") {
+            resolve(json.result);
+          } else {
+            reject(json.status);
+          }
+        });
+    });
+  }
+
+  _txsToKittySale = (txs) => {
+    let result = []
+    for (let i=0; i<txs.length; i++) {
+      if (txs[i].to.toLowerCase() === kittySaleAddress.toLowerCase()
+        && txs[i].isError === "0") {
+        result.push(txs[i]);
+      }
+    }
+    return result;
+  }
+
+  _allKittiesEverBought = () => {
+    return new Promise((resolve, reject) => {
+      this._getAllTxs(this.accountAddress)
+        .then((result) => {
+          let resultingTxs = this._txsToKittySale(result);
+          let kittyIds = this._getAllKittyIds(resultingTxs);
+          resolve(kittyIds);
+        }).catch(e => reject(e));
+    });
+  }
+
+  _ownerOf = (kittyId) => {
+    var eventProvider = new Web3.providers.WebsocketProvider(INFURA_WS);
+    eventProvider.on('error', e => console.error('WS Error', e));
+    eventProvider.on('end', e => console.error('WS End', e));
+
+    var web3 = new Web3(eventProvider);
+    var contract = new web3.eth.Contract(NFTABI,
+      contractAddresses["cryptokitties"], {
+      });
+    contract.methods.ownerOf(kittyId).send().then((result) => {
+      console.log(result);
+    });
+  }
+
+}
 
 class App extends Component {
   constructor(props) {
@@ -15,6 +114,7 @@ class App extends Component {
       metamaskLoggedIn: false,
       metamaskListening: false,
       account: null,
+      loading: true,
     };
     if (Web3.givenProvider) {
       this.web3 = new Web3(Web3.givenProvider);
@@ -33,7 +133,10 @@ class App extends Component {
     }
     this.web3.eth.getAccounts((err, accounts) => {
       if (err !== null) console.error("An error occurred: "+err);
-      else if (accounts.length === 0) console.log("User is not logged in to MetaMask");
+      else if (accounts.length === 0) {
+        console.log("User is not logged in to MetaMask");
+        this._startListeningForMetamaskLogIn();
+      }
       else {
         console.log("User is logged in to MetaMask");
         this.setState({
@@ -45,21 +148,35 @@ class App extends Component {
   }
 
   shouldComponentUpdate() {
-    // stop checking if logged in
-    if (this.state.metamaskListening) {
-      if (this.state.metamaskLoggedIn) {
-        clearInterval(this.interval);
-      }
-    }
+    this._removeListeningForLogIn();
     return true;
   }
 
   componentDidMount() {
     console.log(NFTABI);
     console.log(contractAddresses["cryptokitties"]);
+    this._loadKittyInfo();
+  }
 
+  _loadKittyInfo = () => {
+    var processor = new KittyProcessor("0x446252b54d626cf4192e5c74545761dfaf7e5a50");
+    processor._allKittiesEverBought()
+      .then((ids) => {
+        console.log(ids);
+      }).catch(e => console.error(e));
+  }
+
+  _removeListeningForLogIn = () => {
+    if (this.state.metamaskListening) {
+      if (this.state.metamaskLoggedIn) {
+        clearInterval(this.interval);
+      }
+    }
+  }
+
+  // only if metamask exists, not already logged in and not listening
+  _startListeningForMetamaskLogIn = () => {
     if (this.state.metamaskExists) {
-      // if not logged in and not already listening, start listening
       if (!this.state.matamaskLoggedIn && !this.metamaskListening) {
         this.interval = setInterval(this._checkMetamaskLoggedIn, 1000);
         this.setState({
@@ -83,33 +200,34 @@ class App extends Component {
   }
 
   render() {
-    let contract = new this.web3Infura.eth.Contract(NFTABI,
-      contractAddresses["cryptokitties"], {
-        from: this.state.account
-      });
-    contract.events.Transfer({filter: {tokenId: "888507"}, fromBlock: 0},
-      (errors, events) => {
-        console.log(events);
-        console.log(errors);
-      }
-    );
-    /*
-    contract.events.Transfer({
-      filter: {tokenId: "888507"},
-      fromBlock: 0
-    }, function(err, event) {
-      console.log(err);
-      console.log("Event");
-      console.log(event);
-    });
-    */
-
     let loggedIn = this.state.metamaskLoggedIn;
     let connected = this.state.metamaskExists;
+    let loading = this.state.loading;
     let mmText = "Metamask not found";
+    let bodyInfo = (
+      <p className="App-info">
+        {mmText}
+      </p>
+    );
+
     if (connected) {
       if (loggedIn) {
-        mmText = "Connected to Metamask";
+        if (loading) {
+          bodyInfo = (
+            <div className="App-loading container">
+              <div className="row justify-content-center">
+                <PropagateLoader
+                  sizeUnit={"px"}
+                  size={10}
+                  color={'#555'}
+                  loading={loading}
+                />
+              </div>
+            </div> 
+          );
+        } else {
+          mmText = "Connected to Metamask";
+        }
       } else {
         mmText = "Please log on to Metamask";
       }
@@ -120,11 +238,7 @@ class App extends Component {
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
         </header>
-        <div className="App-body">
-          <p className="App-intro">
-            {mmText}
-          </p>
-        </div>
+        <div className="App-body">{bodyInfo}</div>
       </div>
     );
   }
