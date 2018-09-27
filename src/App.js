@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 import Web3 from 'web3';
 import logo from './logo/logo_white.svg';
 import './App.css';
+import NFTABI from './contracts/nft.abi';
+import contractAddresses from './contracts/addresses';
+
+const INFURA_WS = "wss://mainnet.infura.io/ws";
 
 class App extends Component {
   constructor(props) {
@@ -17,6 +21,10 @@ class App extends Component {
     } else {
       this.web3 = null;
     }
+    this.eventProvider = new Web3.providers.WebsocketProvider(INFURA_WS);
+    this.eventProvider.on('error', e => console.error('WS Error', e));
+    this.eventProvider.on('end', e => console.error('WS End', e));
+    this.web3Infura = new Web3(this.eventProvider);
   }
 
   componentWillMount() {
@@ -47,6 +55,9 @@ class App extends Component {
   }
 
   componentDidMount() {
+    console.log(NFTABI);
+    console.log(contractAddresses["cryptokitties"]);
+
     if (this.state.metamaskExists) {
       // if not logged in and not already listening, start listening
       if (!this.state.matamaskLoggedIn && !this.metamaskListening) {
@@ -64,13 +75,35 @@ class App extends Component {
       if (accounts.length !== 0) {
         console.log("User is logged in to MetaMask");
         this.setState({
-          metamaskLoggedIn: true
+          metamaskLoggedIn: true,
+          account: accounts[0]
         });
       }
     });
   }
 
   render() {
+    let contract = new this.web3Infura.eth.Contract(NFTABI,
+      contractAddresses["cryptokitties"], {
+        from: this.state.account
+      });
+    contract.events.Transfer({filter: {tokenId: "888507"}, fromBlock: 0},
+      (errors, events) => {
+        console.log(events);
+        console.log(errors);
+      }
+    );
+    /*
+    contract.events.Transfer({
+      filter: {tokenId: "888507"},
+      fromBlock: 0
+    }, function(err, event) {
+      console.log(err);
+      console.log("Event");
+      console.log(event);
+    });
+    */
+
     let loggedIn = this.state.metamaskLoggedIn;
     let connected = this.state.metamaskExists;
     let mmText = "Metamask not found";
