@@ -12,6 +12,8 @@ const apiKey = "11IBD3K48I6ZXIT86ZC17YH3XYZJCAURID";
 const etherBaseUrl = "http://api.etherscan.io/api?";
 
 const kittySaleAddress = '0xb1690C08E213a35Ed9bAb7B318DE14420FB57d8C';
+const kittySiringAddress = '0xC7af99Fe5513eB6710e6D5f44F9989dA40F27F26';
+// const kittyCoreAddress = '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d';
 
 class KittyProcessor {
   constructor(accountAddress) {
@@ -91,16 +93,47 @@ class KittyProcessor {
   }
 
   _ownerOf = (kittyId) => {
-    var eventProvider = new Web3.providers.WebsocketProvider(INFURA_WS);
-    eventProvider.on('error', e => console.error('WS Error', e));
-    eventProvider.on('end', e => console.error('WS End', e));
+    return new Promise((resolve, reject) => {
+      let eventProvider = new Web3.providers.WebsocketProvider(INFURA_WS);
+      eventProvider.on('error', e => reject(e));
+      eventProvider.on('end', e => reject(e));
 
-    var web3 = new Web3(eventProvider);
-    var contract = new web3.eth.Contract(NFTABI,
-      contractAddresses["cryptokitties"], {
+      let web3 = new Web3(eventProvider);
+      let contract = new web3.eth.Contract(NFTABI,
+        contractAddresses["cryptokitties"], {
+        });
+      contract.methods.ownerOf(kittyId).call({from: this.accountAddress}).then((result) => {
+        resolve(result);
       });
-    contract.methods.ownerOf(kittyId).send().then((result) => {
-      console.log(result);
+    });
+  }
+
+  _getKittyPortfolio = (kittyIds) => {
+    return new Promise((resolve, reject) => {
+      let result = {
+        "available": [],
+        "siring": [],
+        "past": [],
+      };
+      function forEachKitty(i, that) {
+        if (i >= kittyIds.length) {
+          resolve(result);
+        }
+        else {
+          let kittyId = kittyIds[i];
+          that._ownerOf(kittyId).then((owner) => {
+            if (owner.toLowerCase() === that.accountAddress.toLowerCase()) {
+              result["available"].push(kittyId);
+            } else if (owner.toLowerCase() === kittySiringAddress.toLowerCase()) {
+              result["siring"].push(kittyId);
+            } else {
+              result["past"].push(kittyId);
+            }
+            forEachKitty(i+1, that);
+          }).catch(e => reject(e));
+        }
+      }
+      forEachKitty(0, this);
     });
   }
 
@@ -143,6 +176,7 @@ class App extends Component {
           metamaskLoggedIn: true,
           account: accounts[0]
         });
+        this._loadKittyInfo();
       }
     });
   }
@@ -153,16 +187,14 @@ class App extends Component {
   }
 
   componentDidMount() {
-    console.log(NFTABI);
-    console.log(contractAddresses["cryptokitties"]);
-    this._loadKittyInfo();
   }
 
   _loadKittyInfo = () => {
-    var processor = new KittyProcessor("0x446252b54d626cf4192e5c74545761dfaf7e5a50");
+    let processor = new KittyProcessor(this.state.account);
     processor._allKittiesEverBought()
       .then((ids) => {
         console.log(ids);
+        processor._getKittyPortfolio(ids).then(res => console.log(res)).catch(e => console.error(e));
       }).catch(e => console.error(e));
   }
 
@@ -195,6 +227,7 @@ class App extends Component {
           metamaskLoggedIn: true,
           account: accounts[0]
         });
+        this._loadKittyInfo();
       }
     });
   }
