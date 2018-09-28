@@ -11,6 +11,7 @@ const INFURA_WS = "wss://mainnet.infura.io/ws";
 const apiKey = "11IBD3K48I6ZXIT86ZC17YH3XYZJCAURID";
 const etherBaseUrl = "http://api.etherscan.io/api?";
 const cryptoKittyBaseUrl = "http://api.cryptokitties.co/kitties/";
+const cryptoKittyUrl = "https://www.cryptokitties.co/kitty/";
 
 const kittySaleAddress = '0xb1690C08E213a35Ed9bAb7B318DE14420FB57d8C';
 const kittySiringAddress = '0xC7af99Fe5513eB6710e6D5f44F9989dA40F27F26';
@@ -18,7 +19,12 @@ const kittySiringAddress = '0xC7af99Fe5513eB6710e6D5f44F9989dA40F27F26';
 
 class KittyProcessor {
   constructor(accountAddress) {
-    this.accountAddress = accountAddress;
+    if (accountAddress) {
+      this.accountAddress = accountAddress;
+    } else {
+      console.error("Account address not initialized");
+      this.accountAddress = null;
+    }
     this.methodIds = {
       "0x454a2ab3": "bid"
     }
@@ -151,6 +157,83 @@ class KittyProcessor {
   }
 }
 
+class CryptoKitty extends Component {
+  _insertRow = (items) => {
+    let result = [];
+    for (let i=0; i<items.length; i++) {
+      let item = items[i];
+      let id = item.id;
+      let gen = item.generation;
+      let img = item.image_url;
+      let bio = item.bio;
+      result.push(
+        <div className="col-6 col-md-4" key={i}>
+          <a target="_blank" href={cryptoKittyUrl+id}>
+          <div className="Kitty-card">
+            <img src={img} alt={id} height={300} />
+            <br />
+            <p>Generation: {gen}</p>
+            <br/>
+            <p className="Kitty-bio">{bio}</p>
+          </div>
+          </a>
+        </div>
+      );
+    }
+    return result;
+  }
+
+  _insertAll = (items) => {
+    let outcome = [];
+    let numOfRows = Math.ceil(items.length/3);
+    for (let i=0; i<numOfRows; i++) {
+      let startIndex = i*3;
+      let endIndex = i*3+3;
+      let rowItems = this._insertRow(items.slice(startIndex, endIndex));
+      let row = (
+        <div className="row" key={i}>
+          {rowItems}
+        </div>
+      );
+      outcome.push(row);
+    }
+    return outcome;
+  }
+
+  render() {
+    let available = this.props.available;
+    let siring = this.props.siring;
+    // let past = this.props.past;
+    
+    let availableContent;
+    if (available.length > 0) {
+      availableContent = (
+        <div className="Kitty-available">
+          <h2>Available</h2>
+          {this._insertAll(available)}
+        </div>
+      );
+    }
+    let siringContent;
+    if (siring.length > 0) {
+      siringContent = (
+        <div className="Kitty-siring">
+          <h2>Siring</h2>
+          {this._insertAll(siring)}
+        </div>
+      );
+    }
+
+    return (
+      <div className="Kitty container-fluid">
+        <h1>CryptoKitty</h1>
+        {availableContent}
+        {siringContent}
+      </div>
+    );
+  }
+}
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -266,8 +349,10 @@ class App extends Component {
               available: availableKitties,
               siring: siringKitties,
               past: pastKitties
-            }
+            },
+            loading: false,
           });
+          console.log("Kitties have been loaded");
         }).catch(e => console.error(e));
       }).catch(e => console.error(e));
     }).catch(e => console.error(e));
@@ -322,12 +407,12 @@ class App extends Component {
     let loggedIn = this.state.metamaskLoggedIn;
     let connected = this.state.metamaskExists;
     let loading = this.state.loading;
+    let available = this.state.kitties.available;
+    let siring = this.state.kitties.siring;
+    let past = this.state.kitties.past;
+
     let mmText = "Metamask not found";
-    let bodyInfo = (
-      <p className="App-info">
-        {mmText}
-      </p>
-    );
+    let bodyInfo;
 
     if (connected) {
       if (loggedIn) {
@@ -352,12 +437,19 @@ class App extends Component {
       }
     }
 
+    bodyInfo = (
+      <p className="App-info">
+        {mmText}
+      </p>
+    );
+    let kittyBody = <CryptoKitty available={available} siring={siring} past={past} />
+
     return (
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
         </header>
-        <div className="App-body">{bodyInfo}</div>
+        <div className="App-body">{loading?bodyInfo:kittyBody}</div>
       </div>
     );
   }

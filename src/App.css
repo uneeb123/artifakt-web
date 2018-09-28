@@ -17,6 +17,7 @@
 }
 
 .App-info {
+  padding-top: 100px;
   font-size: large;
 }
 
@@ -26,4 +27,39 @@
 
 .App-loading {
   padding-top: 100px;
+}
+
+
+/* Kitty */
+
+.Kitty {
+  margin-top: 40px;
+}
+
+.Kitty a {
+  display: block;
+  width: 100%;
+}
+
+.Kitty-available {
+  margin-top: 40px;
+}
+
+.Kitty-siring {
+  margin-top: 40px;
+}
+
+.Kitty-card {
+  background-color: white;
+  border-radius: 20px;
+  border-width: 10px;
+  border-color: red;
+  border-style: solid;
+  color: black;
+  margin: 50px;
+  padding: 20px;
+}
+
+.Kitty-bio {
+  font-size: 0.8em;
 }
