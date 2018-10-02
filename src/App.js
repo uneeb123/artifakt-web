@@ -411,7 +411,6 @@ class App extends Component {
     let siring = this.state.kitties.siring;
     let past = this.state.kitties.past;
 
-    let mmText = "Metamask not found";
     let bodyInfo;
 
     if (connected) {
@@ -430,18 +429,21 @@ class App extends Component {
             </div> 
           );
         } else {
-          mmText = "Connected to Metamask";
+          bodyInfo = (
+            <p className="App-info">"Connected to Metamask"</p>
+          );
         }
       } else {
-        mmText = "Please log on to Metamask";
+        bodyInfo = (
+          <p className="App-info">"Please log on to Metamask"</p>
+        );
       }
+    } else {
+      bodyInfo = (
+        <p className="App-info">"Metamask not found. Please download Metamask."</p>
+      );
     }
 
-    bodyInfo = (
-      <p className="App-info">
-        {mmText}
-      </p>
-    );
     let kittyBody = <CryptoKitty available={available} siring={siring} past={past} />
 
     return (
