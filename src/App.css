@@ -12,6 +12,10 @@
   color: white;
 }
 
+.App-beta {
+  margin-left: 50px;
+}
+
 .App-title {
   font-size: 1.5em;
 }

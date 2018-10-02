@@ -450,6 +450,7 @@ class App extends Component {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
+          <span className="App-beta">(preview)</span>
         </header>
         <div className="App-body">{loading?bodyInfo:kittyBody}</div>
       </div>
