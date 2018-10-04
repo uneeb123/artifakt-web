@@ -6,7 +6,8 @@ import Web3 from 'web3';
 import NFTABI from './contracts/nft.abi';
 import contractAddresses from './contracts/addresses';
 
-const INFURA_WS = "wss://mainnet.infura.io/ws";
+// FIXME Use infura instead of MetaMask to speed up
+// const INFURA_WS = "wss://mainnet.infura.io/ws";
 const apiKey = "11IBD3K48I6ZXIT86ZC17YH3XYZJCAURID";
 const etherBaseUrl = "http://api.etherscan.io/api?";
 const cryptoKittyBaseUrl = "http://api.cryptokitties.co/kitties/";
@@ -16,7 +17,6 @@ const kittySaleAddress = '0xb1690C08E213a35Ed9bAb7B318DE14420FB57d8C';
 const kittySiringAddress = '0xC7af99Fe5513eB6710e6D5f44F9989dA40F27F26';
 // const kittyCoreAddress = '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d';
 
-// FIXME Use infura instead of MetaMask to speed up
 class KittyProcessor {
   constructor(accountAddress) {
     if (accountAddress) {
@@ -101,11 +101,13 @@ class KittyProcessor {
 
   _ownerOf = (kittyId) => {
     return new Promise((resolve, reject) => {
-      let eventProvider = new Web3.providers.WebsocketProvider(INFURA_WS);
-      eventProvider.on('error', e => reject(e));
-      eventProvider.on('end', e => reject(e));
+      /*
+        let eventProvider = new Web3.providers.WebsocketProvider(INFURA_WS);
+        eventProvider.on('error', e => reject(e));
+        eventProvider.on('end', e => reject(e));
 
-      // let web3 = new Web3(eventProvider);
+        let web3 = new Web3(eventProvider);
+      */
       let web3 = new Web3(Web3.givenProvider);
       let contract = new web3.eth.Contract(NFTABI,
         contractAddresses["cryptokitties"], {

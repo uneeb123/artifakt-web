@@ -2,20 +2,6 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 80px;
-}
-
-.App-header {
-  background-color: #222;
-  padding: 30px;
-  color: white;
-}
-
-.App-beta {
-  margin-left: 50px;
-}
-
 .App-title {
   font-size: 1.5em;
 }
@@ -33,6 +19,31 @@
   padding-top: 100px;
 }
 
+/* Nav */
+
+.Nav-header {
+  background-color: #222;
+  color: white;
+}
+
+.Nav-logo {
+  height: 40px;
+}
+
+.Nav-beta {
+  margin-left: 50px;
+  font-size: 1.2em;
+}
+
+.Nav-button {
+  font-size: 1.1em;
+  border-right: 1px solid;
+  border-color: #FFF;
+}
+
+.Nav-full {
+  padding: 20px;
+}
 
 /* Kitty */
 

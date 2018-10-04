@@ -90,16 +90,16 @@ class App extends Component {
     if (connected) {
       if (loggedIn) {
         bodyInfo = (
-          <p className="App-info">"Connected to Metamask"</p>
+          <p className="App-info">{"Connected to Metamask"}</p>
         );
       } else {
         bodyInfo = (
-          <p className="App-info">"Please log on to Metamask"</p>
+          <p className="App-info">{"Please log on to Metamask"}</p>
         );
       }
     } else {
       bodyInfo = (
-        <p className="App-info">"Metamask not found. Please download Metamask."</p>
+        <p className="App-info">{"Metamask not found. Please download Metamask."}</p>
       );
     }
     let body;
@@ -110,12 +110,20 @@ class App extends Component {
     }
 
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <span className="App-beta">(preview)</span>
+      <div className="App container-fluid">
+        <header className="Nav-header row">
+          <div className="col Nav-button d-flex justify-content-center align-items-center">
+            {"Discover"}
+          </div>
+          <div className="col Nav-button d-flex justify-content-center align-items-center">
+            {"Profile"}
+          </div>
+          <div className="col-10 Nav-full">
+            <img src={logo} className="Nav-logo" alt="logo" />
+            <span className="Nav-beta">{"*preview"}</span>
+          </div>
         </header>
-        <div className="App-body">
+        <div className="App-body row">
           {body}
         </div>
       </div>
