@@ -6,6 +6,8 @@ import './App.css';
 
 import Profile from './Profile';
 import Discover from './Discover';
+import MainApp from './MainApp';
+import Login from './Login';
 
 class App extends Component {
   constructor(props) {
@@ -15,7 +17,6 @@ class App extends Component {
       metamaskLoggedIn: false,
       metamaskListening: false,
       account: null,
-      bodyPointer: null,
     };
     if (Web3.givenProvider) {
       this.web3 = new Web3(Web3.givenProvider);
@@ -85,18 +86,6 @@ class App extends Component {
     });
   }
 
-  _activateDiscover = () => {
-    this.setState({
-      bodyPointer: "discover"
-    });
-  }
-
-  _activateProfile = () => {
-    this.setState({
-      bodyPointer: "profile"
-    });
-  }
-
   render() {
     let connected = this.state.metamaskExists;
     let loggedIn = this.state.metamaskLoggedIn;
@@ -117,40 +106,9 @@ class App extends Component {
         <p className="App-info">{"Metamask not found. Please download Metamask."}</p>
       );
     }
-    let body;
-    let bodyPointer = this.state.bodyPointer;
-
-    if (loggedIn) {
-      if (bodyPointer === "profile") {
-        body = (<Profile account={this.state.account}/>);
-      } else if (bodyPointer === "discover") {
-        body = (<Discover />);
-      } else {
-        body = (<Discover />);
-      }
-    } else {
-      body = bodyInfo;
-    }
-
     return (
-      <div className="App container-fluid">
-        <header className="Nav-header row">
-          <div className="col Nav-button d-flex justify-content-center align-items-center"
-            onClick={this._activateDiscover}>
-            {"Discover"}
-          </div>
-          <div className="col Nav-button d-flex justify-content-center align-items-center"
-            onClick={this._activateProfile}>
-            {"Profile"}
-          </div>
-          <div className="col-10 Nav-full">
-            <img src={logo} className="Nav-logo" alt="logo" />
-            <span className="Nav-beta">{"*preview"}</span>
-          </div>
-        </header>
-        <div className="App-body row">
-          {body}
-        </div>
+      <div>
+        {bodyInfo}
       </div>
     );
   }
