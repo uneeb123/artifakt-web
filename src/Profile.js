@@ -16,6 +16,7 @@ const kittySaleAddress = '0xb1690C08E213a35Ed9bAb7B318DE14420FB57d8C';
 const kittySiringAddress = '0xC7af99Fe5513eB6710e6D5f44F9989dA40F27F26';
 // const kittyCoreAddress = '0x06012c8cf97BEaD5deAe237070F9587f8E7A266d';
 
+// FIXME Use infura instead of MetaMask to speed up
 class KittyProcessor {
   constructor(accountAddress) {
     if (accountAddress) {
@@ -104,7 +105,8 @@ class KittyProcessor {
       eventProvider.on('error', e => reject(e));
       eventProvider.on('end', e => reject(e));
 
-      let web3 = new Web3(eventProvider);
+      // let web3 = new Web3(eventProvider);
+      let web3 = new Web3(Web3.givenProvider);
       let contract = new web3.eth.Contract(NFTABI,
         contractAddresses["cryptokitties"], {
         });
@@ -326,8 +328,12 @@ export default class Profile extends Component {
     this.kittyProcessor = new KittyProcessor(this.props.account);
     this.kittyProcessor._allKittiesEverBought()
       .then((ids) => {
+        var t0 = performance.now();
         this.kittyProcessor._getKittyPortfolio(ids)
           .then((sortedIds) => {
+            var t1 = performance.now();
+            console.log("Took " + (t1 - t0) + " milliseconds to check " +
+              "kitty ownership");
             this._constructKitties(sortedIds);
           }).catch(e => console.error(e));
       }).catch(e => console.error(e));

@@ -5,8 +5,6 @@ import logo from './logo/logo_white.svg';
 import './App.css';
 import Profile from './Profile';
 
-const INFURA_WS = "wss://mainnet.infura.io/ws";
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -21,10 +19,6 @@ class App extends Component {
     } else {
       this.web3 = null;
     }
-    this.eventProvider = new Web3.providers.WebsocketProvider(INFURA_WS);
-    this.eventProvider.on('error', e => console.error('WS Error', e));
-    this.eventProvider.on('end', e => console.error('WS End', e));
-    this.web3Infura = new Web3(this.eventProvider);
   }
 
   componentWillMount() {
