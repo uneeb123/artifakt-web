@@ -1,11 +1,8 @@
 import React, { Component } from 'react';
 
 import Web3 from 'web3';
-import logo from './logo/logo_white.svg';
 import './App.css';
 
-import Profile from './Profile';
-import Discover from './Discover';
 import MainApp from './MainApp';
 import Login from './Login';
 
@@ -16,6 +13,7 @@ class App extends Component {
       metamaskExists: false,
       metamaskLoggedIn: false,
       metamaskListening: false,
+      authenticated: true,
       account: null,
     };
     if (Web3.givenProvider) {
@@ -89,26 +87,18 @@ class App extends Component {
   render() {
     let connected = this.state.metamaskExists;
     let loggedIn = this.state.metamaskLoggedIn;
-    let bodyInfo;
+    let authenticated = this.state.authenticated;
 
-    if (connected) {
-      if (loggedIn) {
-        bodyInfo = (
-          <p className="App-info">{"Connected to Metamask"}</p>
-        );
-      } else {
-        bodyInfo = (
-          <p className="App-info">{"Please log on to Metamask"}</p>
-        );
-      }
+    let body;
+    if (connected && loggedIn && authenticated) {
+      body = (<MainApp account={this.state.account}/>);
     } else {
-      bodyInfo = (
-        <p className="App-info">{"Metamask not found. Please download Metamask."}</p>
-      );
+      body = (<Login />);
     }
+
     return (
       <div>
-        {bodyInfo}
+        {body}
       </div>
     );
   }

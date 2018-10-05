@@ -6,17 +6,18 @@
   font-size: 1.5em;
 }
 
-.App-info {
-  padding-top: 100px;
-  font-size: large;
-}
-
 .App-body {
   color: white;
 }
 
 .App-loading {
   padding-top: 100px;
+}
+
+.App-background {
+  position:fixed;
+  height:100%;
+  width:100%;
 }
 
 /* Nav */
