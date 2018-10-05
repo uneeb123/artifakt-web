@@ -14,12 +14,6 @@
   padding-top: 100px;
 }
 
-.App-background {
-  position:fixed;
-  height:100%;
-  width:100%;
-}
-
 /* Nav */
 
 .Nav-header {
@@ -45,6 +39,22 @@
 
 .Nav-full {
   padding: 20px;
+}
+
+/* Login */
+
+.Login-background {
+  position:fixed;
+  height:100%;
+  width:100%;
+  text-align: center;
+}
+
+.Login-box {
+  background-color: white;
+  margin-top:100px;
+  border-radius:25px;
+  padding:50px;
 }
 
 /* Kitty */

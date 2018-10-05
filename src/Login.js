@@ -17,8 +17,12 @@ export default class Login extends Component {
     }
 
     return (
-      <div id="gradient" className="App-background">
-        {info}
+      <div id="gradient" className="Login-background container-fluid">
+        <div className="row justify-content-center">
+          <div className="Login-box col-6">
+            {info}
+          </div>
+        </div>
       </div>
     );
   }

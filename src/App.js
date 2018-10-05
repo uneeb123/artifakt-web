@@ -13,7 +13,7 @@ class App extends Component {
       metamaskExists: false,
       metamaskLoggedIn: false,
       metamaskListening: false,
-      authenticated: true,
+      authenticated: false,
       account: null,
     };
     if (Web3.givenProvider) {
@@ -93,7 +93,7 @@ class App extends Component {
     if (connected && loggedIn && authenticated) {
       body = (<MainApp account={this.state.account}/>);
     } else {
-      body = (<Login />);
+      body = (<Login connected={connected} loggedIn={loggedIn}/>);
     }
 
     return (
