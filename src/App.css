@@ -19,6 +19,7 @@
 .Nav-header {
   background-color: #222;
   color: white;
+  font-family: 'Noto Sans JP', sans-serif;
 }
 
 .Nav-logo {
@@ -48,6 +49,7 @@
   height:100%;
   width:100%;
   text-align: center;
+  font-family: 'Noto Sans JP', sans-serif;
 }
 
 .Login-box {
@@ -58,16 +60,50 @@
 }
 
 .Login-issue {
+  font-size:0.8em;
   border:1px solid red;
   padding:10px;
-  border-radius: 10px;
-  margin-left:50px;
-  margin-right:50px;
+  border-radius: 20px;
+  margin-left:100px;
+  margin-right:100px;
+  margin-bottom:50px;
+}
+
+.Login-issue-green {
+  font-size:0.8em;
+  border:1px solid green;
+  padding:10px;
+  border-radius: 20px;
+  margin-left:100px;
+  margin-right:100px;
+  margin-bottom:50px;
 }
 
 .Login-red {
   color:red;
   margin-right:20px;
+}
+
+.Login-green {
+  color:green;
+  margin-right:20px;
+}
+
+.Login-info-li {
+  margin: 10px 0;
+  font-style: italic;
+  font-size:1.2em;
+}
+
+.Login-logo {
+  height: 40px;
+  margin-bottom:40px
+}
+
+.Login-register-btn:disabled {
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
 }
 
 /* Kitty */
