@@ -40,6 +40,13 @@ export default class Login extends Component {
     return (
       <form onSubmit={this._handleSubmit}>
         <div className="form-group row">
+          <label className="col-sm-3 col-form-label d-flex justify-content-start align-items-center">account</label>
+          <div className="col-sm-9">
+            <input type="text" className="form-control" style={{fontSize: "9px"}}
+              value={this.props.account} disabled={true} />
+          </div>
+        </div>
+        <div className="form-group row">
           <label className="col-sm-3 col-form-label d-flex justify-content-start align-items-center">handle</label>
           <div className="col-sm-9">
             <input type="text" className="form-control"
@@ -53,7 +60,12 @@ export default class Login extends Component {
             <input type="email" className="form-control"
               id="inputEmail" value={this.state.email} disabled={!allow}
               onChange={this._handleEmail} placeholder="enter email" />
-            <small id="emailHelp" className="form-text text-muted">{"We'll never share your email with anyone else."}</small>
+          </div>
+          <div className="col-sm-3"></div>
+          <div className="col-sm-9 d-flex justify-content-start">
+            <small className="form-text text-muted">
+              {"We'll never share your email with anyone else."}
+            </small>
           </div>
         </div>
         <div className="form-group row">
@@ -113,10 +125,10 @@ export default class Login extends Component {
           <div className="Login-box col-8">
             {info}
             <div className="row">
-              <div className="col">
+              <div className="col-7 Login-info-col">
                 {this._registerInfo()}
               </div>
-              <div className="col">
+              <div className="col-5">
                 {this._registerForm()}
               </div>
             </div>

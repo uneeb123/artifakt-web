@@ -53,6 +53,8 @@
 }
 
 .Login-box {
+  position:fixed;
+  height:75%;
   background-color: white;
   margin-top:100px;
   border-radius:25px;
@@ -104,6 +106,12 @@
   border: 1px solid #999999;
   background-color: #cccccc;
   color: #666666;
+}
+
+.Login-info-col {
+  border-right: 1px solid #EEE;
+  padding-top:60px;
+  padding-bottom:60px;
 }
 
 /* Kitty */

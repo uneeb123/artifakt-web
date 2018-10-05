@@ -93,7 +93,7 @@ class App extends Component {
     if (connected && loggedIn && authenticated) {
       body = (<MainApp account={this.state.account}/>);
     } else {
-      body = (<Login connected={connected} loggedIn={loggedIn}/>);
+      body = (<Login account={this.state.account} connected={connected} loggedIn={loggedIn}/>);
     }
 
     return (
