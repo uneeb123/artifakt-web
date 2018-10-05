@@ -26,21 +26,21 @@ class App extends Component {
   componentWillMount() {
     if (this.web3) {
       this.setState({metamaskExists: true});
+      this.web3.eth.getAccounts((err, accounts) => {
+        if (err !== null) console.error("An error occurred: "+err);
+        else if (accounts.length === 0) {
+          console.log("User is not logged in to MetaMask");
+          this._startListeningForMetamaskLogIn();
+        }
+        else {
+          console.log("User is logged in to MetaMask");
+          this.setState({
+            metamaskLoggedIn: true,
+            account: accounts[0]
+          });
+        }
+      });
     }
-    this.web3.eth.getAccounts((err, accounts) => {
-      if (err !== null) console.error("An error occurred: "+err);
-      else if (accounts.length === 0) {
-        console.log("User is not logged in to MetaMask");
-        this._startListeningForMetamaskLogIn();
-      }
-      else {
-        console.log("User is logged in to MetaMask");
-        this.setState({
-          metamaskLoggedIn: true,
-          account: accounts[0]
-        });
-      }
-    });
   }
 
   shouldComponentUpdate() {
