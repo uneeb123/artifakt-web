@@ -50,9 +50,10 @@ export default class Login extends Component {
         <div className="form-group row">
           <label className="col-sm-3 col-form-label d-flex justify-content-start align-items-center">email</label>
           <div className="col-sm-9">
-            <input type="email" className="form-control d-flex justify-content-start"
+            <input type="email" className="form-control"
               id="inputEmail" value={this.state.email} disabled={!allow}
               onChange={this._handleEmail} placeholder="enter email" />
+            <small id="emailHelp" className="form-text text-muted">{"We'll never share your email with anyone else."}</small>
           </div>
         </div>
         <div className="form-group row">
