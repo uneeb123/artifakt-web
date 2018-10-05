@@ -51,7 +51,7 @@ export default class Login extends Component {
           <div className="col-sm-9">
             <input type="text" className="form-control"
               id="inputHandle" value={this.state.handle} disabled={!allow}
-              onChange={this._handleHandle} placeholder="enter handle" />
+              onChange={this._handleHandle} placeholder="create handle" />
           </div>
         </div>
         <div className="form-group row">
