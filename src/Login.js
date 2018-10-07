@@ -12,13 +12,20 @@ export default class Login extends Component {
   }
 
   _handleHandle = (event) => {
+    this.setState({
+      handle: event.target.value
+    });
   }
 
   _handleEmail = (event) => {
+    this.setState({
+      email: event.target.value
+    });
   }
 
   _handleSubmit = (event) => {
     event.preventDefault();
+    this.props.handler(this.state.handle, this.state.email);
   }
 
   _registerInfo = () => {
@@ -36,9 +43,9 @@ export default class Login extends Component {
 
   _registerForm = () => {
     let allow = this.props.connected && this.props.loggedIn;
-
-    return (
-      <form onSubmit={this._handleSubmit}>
+    let account;
+    if (this.props.account) {
+      account = (
         <div className="form-group row">
           <label className="col-sm-3 col-form-label d-flex justify-content-start align-items-center">account</label>
           <div className="col-sm-9">
@@ -46,6 +53,12 @@ export default class Login extends Component {
               value={this.props.account} disabled={true} />
           </div>
         </div>
+      );
+    }
+
+    return (
+      <form onSubmit={this._handleSubmit}>
+        {account}
         <div className="form-group row">
           <label className="col-sm-3 col-form-label d-flex justify-content-start align-items-center">handle</label>
           <div className="col-sm-9">
