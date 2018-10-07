@@ -18,10 +18,48 @@ export default class Loading extends Component {
   }
 
   render() {
+    let connected = this.props.connected;
+    let loggedIn = this.props.loggedIn;
+    let info;
+
+    if (connected) {
+      if (loggedIn) {
+        info = (
+          <div className="Login-issue-green">
+            <i className="fa fa-check-circle Login-green"></i>
+            <span className="Login-green">
+              {"Connected to Metamask"}
+            </span>
+          </div>
+        );
+
+      } else {
+        info = (
+          <div className="Login-issue">
+            <i className="fa fa-exclamation-circle Login-red"></i>
+            <span className="Login-red">
+              {"Please log on to Metamask"}
+            </span>
+          </div>
+        );
+      }
+    } else {
+      info = (
+          <div className="Login-issue">
+            <i className="fa fa-exclamation-circle Login-red"></i>
+            <span className="Login-red">
+              {"Metamask not found. Download Metamask extension to get started."}
+            </span>
+          </div>
+        );
+    }
+
+
     return (
       <div id="gradient" className="Login-background container-fluid">
         <div className="row justify-content-center">
           <div className="Login-box col-8">
+            {info}
             <div className="row">
               <div className="col-7 Login-info-col">
                 {this._registerInfo()}

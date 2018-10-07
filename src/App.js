@@ -39,15 +39,11 @@ class App extends Component {
         }
         else {
           console.log("User is logged in to MetaMask");
-          this._registeredUser(accounts[0]).then((username) => {
-            console.log(username);
-            this.setState({
-              metamaskLoggedIn: true,
-              account: accounts[0],
-              handle: username,
-              authenticated: true,
-            });
+          this.setState({
+            metamaskLoggedIn: true,
+            account: accounts[0],
           });
+          this._fetchUserDetails(accounts[0]);
         }
       });
     }
@@ -61,12 +57,37 @@ class App extends Component {
   componentDidMount() {
   }
 
+  _fetchUserDetails = (account) => {
+    this._registeredUser(account)
+      .then((username) => {
+        console.log("User is authenticated");
+        this.setState({
+          handle: username,
+          authenticated: true,
+          loading: false,
+        });
+      }).catch((e) => {
+        console.log("User is not registered");
+        this.setState({
+          authenticated: false,
+          loading: false,
+        });
+      });
+  }
+
   _registeredUser = (account) => {
     return new Promise((resolve, reject) => {
       fetch(serverUrl + "user/" + account).then((response) => {
-        response.json().then(json => {
-          resolve(json.username);
-        });
+        if (response.status === 404) {
+          reject();
+        } else {
+          response.json().then(json => {
+            resolve(json.username);
+          });
+        }
+      }).catch((err) => {
+        console.log("Network error");
+        console.error(err);
       });
     });
   }
@@ -100,6 +121,7 @@ class App extends Component {
           metamaskLoggedIn: true,
           account: accounts[0]
         });
+        this._fetchUserDetails(accounts[0]);
       }
     });
   }
@@ -135,7 +157,11 @@ class App extends Component {
 
     let body;
     if (loading) {
-      body = <Loading />
+      body = (
+        <Loading 
+          connected={connected} loggedIn={loggedIn}
+        />
+      );
     } else if (connected && loggedIn && authenticated) {
       body = (<MainApp account={this.state.account}/>);
     } else {
