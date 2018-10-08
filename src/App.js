@@ -3,9 +3,13 @@ import React, { Component } from 'react';
 import Web3 from 'web3';
 import './App.css';
 
+import TermsOfService from './contracts/terms';
 import Loading from './Loading';
 import MainApp from './MainApp';
-import Login from './Login';
+import Register from './Register';
+import SignIn from './SignIn';
+
+const ethUtil = require('ethereumjs-util')
 
 const serverUrl = "http://localhost:8000/";
 
@@ -17,6 +21,7 @@ class App extends Component {
       metamaskLoggedIn: false,
       metamaskListening: false,
       authenticated: false,
+      registered: false,
       account: null,
       handle: null,
       loading: true,
@@ -58,24 +63,24 @@ class App extends Component {
   }
 
   _fetchUserDetails = (account) => {
-    this._registeredUser(account)
+    this._previouslyRegisteredUser(account)
       .then((username) => {
-        console.log("User is authenticated");
+        console.log("User is registered");
         this.setState({
           handle: username,
-          authenticated: true,
+          registered: true,
           loading: false,
         });
       }).catch((e) => {
         console.log("User is not registered");
         this.setState({
-          authenticated: false,
+          registered: false,
           loading: false,
         });
       });
   }
 
-  _registeredUser = (account) => {
+  _previouslyRegisteredUser = (account) => {
     return new Promise((resolve, reject) => {
       fetch(serverUrl + "user/" + account).then((response) => {
         if (response.status === 404) {
@@ -127,25 +132,85 @@ class App extends Component {
   }
 
   _registerUser = (handle, email) => {
-    let body = {
-      username: handle,
-      email: email,
-    };
-    console.log(body);
-    fetch(serverUrl + "user/" + this.state.account, {
-      method: 'POST',
-      body:    JSON.stringify(body),
-      headers: { 'Content-Type': 'application/json'}
-    }).then((response) => {
-      if (response.status === 200) {
-        this.setState({
-          authenticated: true
-        });
-      } else {
-        console.error("Registration failed", response.status);
-      }
-    }).catch((error) => {
-      console.error("Registration failed", error);
+    let from = this.state.account;
+    let msg = ethUtil.bufferToHex(new Buffer(TermsOfService.text, 'utf8'));
+    let params = [msg, from];
+    let method = 'personal_sign';
+    var that = this;
+
+    // create signature
+    this.web3.currentProvider.sendAsync({
+      method,
+      params,
+      from,
+    }, function (err, result) {
+      if (err) return console.error(err);
+      if (result.error) return console.error(result.error);
+      let sig = result.result;
+      console.log("Terms of service agreed");
+
+      // now let's send the request
+      let body = {
+        username: handle,
+        email: email,
+        sig: sig,
+      };
+      console.log(body);
+      fetch(serverUrl + "user/" + from, {
+        method: 'POST',
+        body:    JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json'}
+      }).then((response) => {
+        if (response.status === 201) {
+          that.setState({
+            authenticated: true
+          });
+        } else {
+          console.error("Registration failed", response.status);
+        }
+      }).catch((error) => {
+        console.error("Registration failed", error);
+      });
+    });
+  }
+
+  // TODO: Use EIP712 here
+  _authenticateUser = () => {
+    let timestamp = Date.now().toString();
+    let msg = ethUtil.bufferToHex(new Buffer(timestamp, 'utf8'));
+    
+    let from = this.state.account;
+    let params = [msg, from];
+    let method = 'personal_sign';
+    var that = this;
+
+    this.web3.currentProvider.sendAsync({
+      method,
+      params,
+      from,
+    }, function (err, result) {
+      if (err) return console.error(err);
+      if (result.error) return console.error(result.error);
+
+      let sig = result.result;
+      let body = {
+        sig: sig,
+        msg: msg,
+      };
+      fetch(serverUrl + "auth/" + from, {
+        method: 'POST',
+        body:    JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json'}
+      }).then((response) => {
+        if (response.status === 200) {
+          that.setState({ authenticated: true });
+          console.log("User is authenticated");
+        } else {
+          console.error("User authenticated failed, problem with registration", response.status);
+        }
+      }).catch((error) => {
+        console.error("Network failure", error);
+      });
     });
   }
 
@@ -154,6 +219,7 @@ class App extends Component {
     let connected = this.state.metamaskExists;
     let loggedIn = this.state.metamaskLoggedIn;
     let authenticated = this.state.authenticated;
+    let registered = this.state.registered;
 
     let body;
     if (loading) {
@@ -164,9 +230,16 @@ class App extends Component {
       );
     } else if (connected && loggedIn && authenticated) {
       body = (<MainApp account={this.state.account}/>);
+    } else if (connected && loggedIn && registered) {
+      body = (
+        <SignIn account={this.state.account}
+          connected={connected} loggedIn={loggedIn}
+          handler={this._authenticateUser}
+        />
+      );
     } else {
       body = (
-        <Login account={this.state.account}
+        <Register account={this.state.account}
           connected={connected} loggedIn={loggedIn}
           handler={this._registerUser}
         />
